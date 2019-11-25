@@ -3,7 +3,7 @@ import wpilib.drive
 import ctre
 import robotmap
 from wpilib.interfaces import GenericHID
-
+from subsystems.BallManipulator import BallManipulator
 
 RIGHT_HAND = GenericHID.Hand.kRight
 LEFT_HAND = GenericHID.Hand.kLeft
@@ -17,9 +17,15 @@ class Robot(wpilib.TimedRobot):
         front_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['front_right_motor'])  
         back_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['back_right_motor'])  
 
+        self.centerVictor1 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_1_ID'])
+        self.centerVictor2 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_2_ID'])
+
         front_left_motor.setInverted(True)
         #back_left_motor.setInverted(True)
 
+
+        self.center1 = wpilib.SpeedControllerGroup(self.centerVictor1)
+        self.center2 = wpilib.SpeedControllerGroup(self.centerVictor2)
 
         self.drive = wpilib.drive.MecanumDrive(
             front_left_motor,
@@ -35,26 +41,31 @@ class Robot(wpilib.TimedRobot):
 
         self.gyro = wpilib.AnalogGyro(1)
 
-    #def teleopInit(self):
-    #    self.xforward = 0
-    #    self.yforward = 0
+        self.ballManipulator = BallManipulator(ctre.WPI_VictorSPX(robotmap.ball_manipulator['BALL_MANIP_ID']))
+
+    def teleopInit(self):
+        pass
 
 
-    """def operatorControl(self):
-        Called when operation control mode is enabled
+    def operatorControl(self):
+        pass
 
-        while self.isOperatorControl() and self.isEnabled():
-            self.drive.driveCartesian(
-                self.lstick.getX(), self.lstick.getY(), self.rstick.getX(), 0
-            )
+    def setCenters(self, speed_value):
+        self.center1.set(-speed_value)
+        self.center2.set(speed_value)
 
-            wpilib.Timer.delay(0.04)
-    """
-    
+
     def teleopPeriodic(self):
     
         """Called when operation control mode is enabled"""
+        ballMotorSetPoint = 0
 
+        if self.driver.getBumper(LEFT_HAND):
+            ballMotorSetPoint = 1.0
+        elif self.driver.getBumper(RIGHT_HAND):
+            ballMotorSetPoint = -1.0
+        else:
+            ballMotorSetPoint = 0.0
        
 
         if not self.rstick.getXButton() or not self.lstick.getXButton():
@@ -69,6 +80,10 @@ class Robot(wpilib.TimedRobot):
         self.drive.driveCartesian(
             lspeed, rspeed, rotate, self.gyro.getAngle()
         )
+
+        center_speed = self.driver.getX(self.RIGHT)
+
+        self.setCenters(self.deadzone(center_speed, self.DEADZONE))
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
