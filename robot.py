@@ -17,8 +17,18 @@ class Robot(wpilib.TimedRobot):
         front_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['front_right_motor'])  
         back_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['back_right_motor'])  
 
-        self.centerVictor1 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_1_ID'])
-        self.centerVictor2 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_2_ID'])
+
+        self.ballManipulatorEnabled = False
+
+        if(robotmap.ball_manipulator['CENTER_1_ID'] == 0):
+            print('BALL MANIPULATOR PORTS NOT SETUP')
+            print('BALL MANIPULATOR WILL NOT BE ENABLED')
+        else:
+            self.ballManipulatorEnabled = True
+            self.centerVictor1 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_1_ID'])
+            self.centerVictor2 = ctre.WPI_VictorSPX(robotmap.ball_manipulator['CENTER_2_ID'])
+
+            self.ballManipulator = BallManipulator(ctre.WPI_VictorSPX(robotmap.ball_manipulator['BALL_MANIP_ID']))
 
         front_left_motor.setInverted(True)
         #back_left_motor.setInverted(True)
@@ -41,7 +51,7 @@ class Robot(wpilib.TimedRobot):
 
         self.gyro = wpilib.AnalogGyro(1)
 
-        self.ballManipulator = BallManipulator(ctre.WPI_VictorSPX(robotmap.ball_manipulator['BALL_MANIP_ID']))
+        
 
     def teleopInit(self):
         pass
@@ -82,8 +92,8 @@ class Robot(wpilib.TimedRobot):
         )
 
         center_speed = self.driver.getX(self.RIGHT)
-
-        self.setCenters(self.deadzone(center_speed, self.DEADZONE))
+        if(self.ballManipulatorEnabled):
+            self.setCenters(self.deadzone(center_speed, self.DEADZONE))
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
