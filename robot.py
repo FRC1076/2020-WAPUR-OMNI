@@ -1,74 +1,86 @@
 import wpilib
-import wpilib.drive
 import ctre
-import robotmap
+from wpilib.drive import DifferentialDrive
 from wpilib.interfaces import GenericHID
 
+import robotmap
 
-RIGHT_HAND = GenericHID.Hand.kRight
 LEFT_HAND = GenericHID.Hand.kLeft
+RIGHT_HAND = GenericHID.Hand.kRight
 
-
-class Robot(wpilib.TimedRobot):
-
+class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
-        front_left_motor = ctre.WPI_TalonSRX(robotmap.mecanum['front_left_motor'])  
-        back_left_motor = ctre.WPI_TalonSRX(robotmap.mecanum['back_left_motor'])  
-        front_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['front_right_motor'])  
-        back_right_motor = ctre.WPI_TalonSRX(robotmap.mecanum['back_right_motor'])  
-
-        front_left_motor.setInverted(True)
-        #back_left_motor.setInverted(True)
-
-
-        self.drive = wpilib.drive.MecanumDrive(
-            front_left_motor,
-            back_left_motor,
-            front_right_motor,
-            back_right_motor
-        )
-
-        self.drive.setExpiration(0.1)
+        """Robot initialization function"""
+        # object that handles basic drive operations
+        self.leftVictor = ctre.WPI_VictorSPX(robotmap.omni['left_motor'])
+        self.rightVictor = ctre.WPI_VictorSPX(robotmap.omni['right_motor'])
         
-        self.lstick = wpilib.XboxController(0)
-        self.rstick = wpilib.XboxController(1)
 
-        self.gyro = wpilib.AnalogGyro(1)
+        self.left = wpilib.SpeedControllerGroup(self.leftVictor)
+        self.right = wpilib.SpeedControllerGroup(self.rightVictor)
 
-    #def teleopInit(self):
-    #    self.xforward = 0
-    #    self.yforward = 0
+        self.centerVictor1 = ctre.WPI_VictorSPX(robotmap.omni['front_strafe'])
+        self.centerVictor2 = ctre.WPI_VictorSPX(robotmap.omni['back_strafe'])
 
+        self.center1 = wpilib.SpeedControllerGroup(self.centerVictor1)
+        self.center2 = wpilib.SpeedControllerGroup(self.centerVictor2)
 
-    """def operatorControl(self):
-        Called when operation control mode is enabled
-
-        while self.isOperatorControl() and self.isEnabled():
-            self.drive.driveCartesian(
-                self.lstick.getX(), self.lstick.getY(), self.rstick.getX(), 0
-            )
-
-            wpilib.Timer.delay(0.04)
-    """
-    
-    def teleopPeriodic(self):
-    
-        """Called when operation control mode is enabled"""
+        self.myRobot = DifferentialDrive(self.left, self.right)
+       
+        self.myRobot.setExpiration(0.1)
 
        
 
-        if not self.rstick.getXButton() or not self.lstick.getXButton():
-            lspeed = deadzone(self.lstick.getX(LEFT_HAND), 0.2) 
-            rspeed = deadzone(self.lstick.getY(LEFT_HAND), 0.2)
-            rotate = self.lstick.getX(RIGHT_HAND)
-        else:
-            rotate = 0
-            lspeed = 0
-            rspeed = 0
+        self.driver = wpilib.XboxController(0)
+
+     
+
+    def autonomousInit(self):
+        #self.myRobot.tankDrive(0.8, 0.8)
+        pass
+
+    def autonomousPeriodic(self):
+        # TODO: Add an auton
+        #self.myRobot.tankDrive(1, 0.5)
+        pass
+
+    def teleopInit(self):
+        """Executed at the start of teleop mode"""
+        self.myRobot.setSafetyEnabled(True)
+
+    def setCenters(self, speed_value):
+        self.center1.set(-speed_value)
+        self.center2.set(speed_value)
+    
+    
+
+    def teleopPeriodic(self):
         
-        self.drive.driveCartesian(
-            lspeed, rspeed, rotate, self.gyro.getAngle()
-        )
+        forward = -self.driver.getY(LEFT_HAND)
+        
+        rotation_value = self.driver.getX(RIGHT_HAND)
+        
+        forward = deadzone(forward, robotmap.deadzone)
+
+        self.myRobot.arcadeDrive(forward, rotation_value)
+
+        #center_speed = deadzone(self.driver.getTriggerAxis(LEFT_HAND), robotmap.deadzone)
+        left_in = 0
+        right_in = 0
+        
+        if self.driver.getRawAxis(2) > 0:
+            left_in = self.driver.getRawAxis(2)
+        elif self.driver.getRawAxis(2) < 0:
+            right_in = self.driver.getRawAxis(2)
+
+        if self.driver.getRawAxis(2) > 0:
+            self.center1.set(left_in)
+            self.center2.set(left_in)
+        elif self.driver.getRawAxis(2) < 0:
+            self.center1.set(-right_in)
+            self.center2.set(-right_in)
+
+        #self.setCenters(center_speed)
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
@@ -80,6 +92,5 @@ def deadzone(val, deadzone):
         x = ((val - deadzone)/(1-deadzone))
         return (x)
     
-        
 if __name__ == "__main__":
-    wpilib.run(Robot,physics_enabled=True)
+    wpilib.run(MyRobot)
