@@ -16,7 +16,7 @@ tank = {
 
 omni = {
     'left_motor': 1,
-    'right_motor': 2,
-    'front_strafe': 3,
+    'right_motor': 3,
+    'front_strafe': 2,
     'back_strafe': 4
 }
