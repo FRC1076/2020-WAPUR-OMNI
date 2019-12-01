@@ -26,12 +26,10 @@ class MyRobot(wpilib.TimedRobot):
         self.center2 = wpilib.SpeedControllerGroup(self.centerVictor2)
 
         self.myRobot = DifferentialDrive(self.left, self.right)
-        
-
+       
         self.myRobot.setExpiration(0.1)
 
-        self.LEFT = GenericHID.Hand.kLeft
-        self.RIGHT = GenericHID.Hand.kRight
+       
 
         self.driver = wpilib.XboxController(0)
 
@@ -57,10 +55,8 @@ class MyRobot(wpilib.TimedRobot):
     
 
     def teleopPeriodic(self):
-    
         
-        
-        forward = -self.driver.getY(LEFT_HAND)
+        forward = self.driver.getY(LEFT_HAND)
         
         rotation_value = self.driver.getX(RIGHT_HAND)
         
@@ -68,9 +64,24 @@ class MyRobot(wpilib.TimedRobot):
 
         self.myRobot.arcadeDrive(forward, rotation_value)
 
-        center_speed = deadzone(self.driver.getTriggerAxis(LEFT_HAND), robotmap.deadzone)
+        #center_speed = deadzone(self.driver.getTriggerAxis(LEFT_HAND), robotmap.deadzone)
+        left_in = self.driver.getRawAxis(2)
+        right_in = self.driver.getRawAxis(5)
+        left_in = deadzone(left_in, robotmap.deadzone)
+        #right_in = deadzone(right_in, robotmap.deadzone)
 
-        self.setCenters(center_speed)
+        if(left_in < 0):
+            left_in = 0
+
+        if(right_in < 0):
+            right_in = 0
+
+        print(right_in)
+        self.center1.set(left_in)
+        self.center2.set(right_in)
+
+
+        #self.setCenters(center_speed)
 
 
         
