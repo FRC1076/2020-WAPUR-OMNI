@@ -65,28 +65,18 @@ class MyRobot(wpilib.TimedRobot):
         self.myRobot.arcadeDrive(forward, rotation_value)
 
         #center_speed = deadzone(self.driver.getTriggerAxis(LEFT_HAND), robotmap.deadzone)
-        left_in = self.driver.getRawAxis(2)
-        right_in = self.driver.getRawAxis(5)
-        left_in = deadzone(left_in, robotmap.deadzone)
-        #right_in = deadzone(right_in, robotmap.deadzone)
+        left_in = 0
+        right_in = 0
+        
+        if self.driver.getRawAxis(2) > 0:
+            left_in = self.driver.getRawAxis(2)
+        elif self.driver.getRawAxis(2) < 0:
+            right_in = self.driver.getRawAxis(2)
 
-        if(left_in < 0):
-            left_in = 0
-
-        if(right_in < 0):
-            right_in = 0
-
-        print(right_in)
         self.center1.set(left_in)
-        self.center2.set(right_in)
-
+        self.center2.set(-right_in)
 
         #self.setCenters(center_speed)
-
-
-        
-        
-
 
 def deadzone(val, deadzone):
     if abs(val) < deadzone:
