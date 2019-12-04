@@ -12,6 +12,7 @@
 
 from pyfrc.physics import motor_cfgs, tankmodel, motion
 from pyfrc.physics.units import units
+import robotmap
 
 class PhysicsEngine(object):
     """
@@ -72,11 +73,11 @@ class PhysicsEngine(object):
                             time that this function was called
         """
 
-        # Simulate the drivetrai
-        l_motor = hal_data["CAN"][1]["value"]
-        r_motor = hal_data["CAN"][2]["value"]
-        f_motor = hal_data["CAN"][3]["value"]
-        b_motor = hal_data["CAN"][4]["value"]
+        # Simulate the drivetrain
+        l_motor = hal_data["CAN"][robotmap.omni['left_motor']]["value"]
+        r_motor = hal_data["CAN"][robotmap.omni['right_motor']]["value"]
+        f_motor = hal_data["CAN"][robotmap.omni['front_strafe']]["value"]
+        b_motor = hal_data["CAN"][robotmap.omni['back_strafe']]["value"]
 
         x, y, angle = self.drivetrain.get_distance(l_motor, r_motor, tm_diff)
         s_x, s_y, s_angle = self.strafetrain.get_distance(f_motor, b_motor, tm_diff)

@@ -56,11 +56,12 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopPeriodic(self):
         
-        forward = -self.driver.getY(LEFT_HAND)
+        forward = self.driver.getY(LEFT_HAND)
         
         rotation_value = self.driver.getX(RIGHT_HAND)
         
         forward = deadzone(forward, robotmap.deadzone)
+        rotation_value = deadzone(rotation_value, robotmap.deadzone)
 
         self.myRobot.arcadeDrive(forward, rotation_value)
 
@@ -69,16 +70,19 @@ class MyRobot(wpilib.TimedRobot):
         right_in = 0
         
         if self.driver.getRawAxis(2) > 0:
-            left_in = self.driver.getRawAxis(2)
+            left_in = deadzone(self.driver.getRawAxis(2), robotmap.deadzone)
         elif self.driver.getRawAxis(2) < 0:
-            right_in = self.driver.getRawAxis(2)
+            right_in = deadzone(self.driver.getRawAxis(2), robotmap.deadzone)
 
         if self.driver.getRawAxis(2) > 0:
             self.center1.set(left_in)
-            self.center2.set(left_in)
+            self.center2.set(-left_in)
         elif self.driver.getRawAxis(2) < 0:
-            self.center1.set(-right_in)
+            self.center1.set(right_in)
             self.center2.set(-right_in)
+        else:
+            self.center1.set(0)
+            self.center2.set(0)
 
         #self.setCenters(center_speed)
 
