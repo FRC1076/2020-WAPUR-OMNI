@@ -70,20 +70,26 @@ class MyRobot(wpilib.TimedRobot):
         right_in = 0
         
         if self.driver.getRawAxis(2) > 0:
-            left_in = deadzone(self.driver.getRawAxis(2), robotmap.deadzone)
+            left_in = self.driver.getRawAxis(2)
         elif self.driver.getRawAxis(2) < 0:
-            right_in = deadzone(self.driver.getRawAxis(2), robotmap.deadzone)
+            right_in = self.driver.getRawAxis(2)
 
         if self.driver.getRawAxis(2) > 0:
             self.center1.set(left_in)
             self.center2.set(-left_in)
         elif self.driver.getRawAxis(2) < 0:
-            self.center1.set(right_in)
-            self.center2.set(-right_in)
+            self.center1.set(-1)
+            self.center2.set(1)
+        elif self.driver.getRawAxis(3) != 0:
+            self.center1.set(-1)
+            self.center2.set(1)
         else:
             self.center1.set(0)
             self.center2.set(0)
 
+        # print(right_in)
+        # print(right_in * 1000000000000000000)
+        # print(left_in)
         #self.setCenters(center_speed)
 
 def deadzone(val, deadzone):
