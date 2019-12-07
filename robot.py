@@ -8,6 +8,11 @@ import robotmap
 LEFT_HAND = GenericHID.Hand.kLeft
 RIGHT_HAND = GenericHID.Hand.kRight
 
+#Constants for the kicker
+PNCANID = 0
+RFForward = 0
+RFReverse = 1
+
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
         """Robot initialization function"""
@@ -29,9 +34,10 @@ class MyRobot(wpilib.TimedRobot):
        
         self.myRobot.setExpiration(0.1)
 
-       
+        self.foot = RoboFoot(wpilib.DoubleSolenoid(PNCANID, RFForward, RFReverse))
 
         self.driver = wpilib.XboxController(0)
+        self.operator = wpilib.XboxController(1)
 
      
 
@@ -74,6 +80,12 @@ class MyRobot(wpilib.TimedRobot):
         elif self.driver.getRawAxis(2) < 0:
             right_in = self.driver.getRawAxis(2)
 
+        if self.operator.getAButtonPressed():
+            self.foot.kick()
+        
+        if  self.operator.getAButtonReleased():
+            self.foot.unkick()
+
         if self.driver.getRawAxis(2) > 0:
             self.center1.set(left_in)
             self.center2.set(-left_in)
@@ -86,6 +98,7 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.center1.set(0)
             self.center2.set(0)
+
 
         # print(right_in)
         # print(right_in * 1000000000000000000)
@@ -101,6 +114,20 @@ def deadzone(val, deadzone):
     else:
         x = ((val - deadzone)/(1-deadzone))
         return (x)
+
+# It's the Super RoboFoot class.
+class RoboFoot:
+    stateExtend = wpilib.DoubleSolenoid.Value.kForward
+    stateRetract = wpilib.DoubleSolenoid.Value.kReverse
+    def __init__(self, piston):
+        self.piston = piston
+
+    def kick(self):
+        self.piston.set(RoboFoot.stateRetract)
+    
+    def unkick(self):
+        self.piston.set(RoboFoot.stateExtend)
+
     
 if __name__ == "__main__":
     wpilib.run(MyRobot)
