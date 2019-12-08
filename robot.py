@@ -43,13 +43,18 @@ class MyRobot(wpilib.TimedRobot):
 
     def autonomousInit(self):
         #self.myRobot.tankDrive(0.8, 0.8)
-        pass
+        self.timer = wpilib.Timer()
+        self.timer.start()
 
     def autonomousPeriodic(self):
         # TODO: Add an auton
-        #self.myRobot.tankDrive(1, 0.5)
-        pass
+        if self.timer.get() >= 3.0:
+            self.myRobot.arcadeDrive(0, 0)
+        else:
+            self.myRobot.arcadeDrive(-0.9, 0)
 
+        wpilib.Timer.delay(0.01)
+    
     def teleopInit(self):
         """Executed at the start of teleop mode"""
         self.myRobot.setSafetyEnabled(True)
